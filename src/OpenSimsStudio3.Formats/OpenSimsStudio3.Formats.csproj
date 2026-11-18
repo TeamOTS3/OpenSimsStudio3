@@ -13,4 +13,8 @@
         <!-- The RCOL block registry discovers chunk types from loaded assemblies (see third_party/s3pi/README.md). -->
         <ProjectReference Include="../../third_party/s3pi/s3pi.JazzResource/s3pi.JazzResource.csproj" />
     </ItemGroup>
+    <ItemGroup>
+        <!-- Lets the test project reach internal types such as Compositing.Complate. -->
+        <InternalsVisibleTo Include="OpenSimsStudio3.Formats.Tests" />
+    </ItemGroup>
 </Project>
