@@ -37,7 +37,7 @@ One folder per assembly, with upstream's sources unchanged apart from the change
 - `GenerateAssemblyInfo` is off; upstream's `Properties/AssemblyInfo.cs` is used as-is.
 - Each `Properties/AssemblyVersion.cs` is a fixed `1705.20.1719.0`. Upstream's generator stamped build time; this is the
   stamp found in upstream's source tree, with the wildcard revision replaced by 0 so builds are reproducible.
-- `Properties/Resources.resx` in GenericRCOLResource is embedded as upstream does. No file-name case changes were needed.
+- `Properties/Resources.resx` in GenericRCOLResource is embedded as upstream does. Its `RCOLResources` entry points at `..\RCOLResources.txt` (see the fix below).
 
 ## OpenSimsStudio³ changes
 - `s3pi.GenericRCOLResource/GenericRCOLResource.cs`, block registry: `Assembly.LoadFile(path)` became
@@ -51,3 +51,6 @@ One folder per assembly, with upstream's sources unchanged apart from the change
   now takes the n-th element of the *exact* matching type. Before, every format took the first element whose type
   matched, so a GEOM with two UV channels was written with the first UV twice. The match is exact because
   `NormalElement` and `TangentNormalElement` derive from `PositionElement`.
+- `s3pi.GenericRCOLResource/Properties/Resources.resx`, resource file reference: upstream wrote `..\rcolresources.txt`
+  while the file is `RCOLResources.txt`. That only resolves on case-insensitive file systems (Windows), so the build failed
+  on Linux. The reference now uses the file's real name. No files were renamed.
