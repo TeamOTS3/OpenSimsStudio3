@@ -19,6 +19,15 @@ public sealed record GeomMesh(
     /// <summary>First UV set per vertex, as stored (empty when the GEOM has none).</summary>
     public Vector2[] Uvs { get; init; } = [];
 
+    /// <summary>UV sets 1, 2, ... per vertex, as stored (empty when the GEOM has one UV set or none). Set 0 is <see cref="Uvs" />.</summary>
+    public Vector2[][] ExtraUvs { get; init; } = [];
+
+    /// <summary>How many UV sets the GEOM has.</summary>
+    public int UvSetCount => (Uvs.Length > 0 ? 1 : 0) + ExtraUvs.Length;
+
+    /// <summary>UV set <paramref name="index" />: 0 is <see cref="Uvs" />, 1+ come from <see cref="ExtraUvs" />.</summary>
+    public Vector2[] UvSet(int index) => index == 0 ? Uvs : ExtraUvs[index - 1];
+
     /// <summary>VertexID element per vertex, as stored (empty when the GEOM has none). Morph GEOMs repeat the base's IDs.</summary>
     public uint[] VertexIds { get; init; } = [];
 
@@ -30,9 +39,11 @@ public sealed record GeomMesh(
         var offset = 0u;
         foreach (var m in meshes) { indices.AddRange(m.Indices.Select(i => i + offset)); offset += (uint)m.Positions.Length; }
         var uvs = meshes.All(m => m.Uvs.Length == m.Positions.Length) ? meshes.SelectMany(m => m.Uvs).ToArray() : [];
+        var sets = meshes.Min(m => m.ExtraUvs.Length);
+        var extra = Enumerable.Range(1, sets).Select(k => meshes.SelectMany(m => m.UvSet(k)).ToArray()).ToArray();
         var ids = meshes.All(m => m.VertexIds.Length == m.Positions.Length) ? meshes.SelectMany(m => m.VertexIds).ToArray() : [];
         return new GeomMesh(name, meshes.SelectMany(m => m.Positions).ToArray(), meshes.SelectMany(m => m.Normals).ToArray(), indices.ToArray(),
-            meshes.Max(m => m.BoneCount), meshes[0].Shader) { Uvs = uvs, VertexIds = ids };
+            meshes.Max(m => m.BoneCount), meshes[0].Shader) { Uvs = uvs, ExtraUvs = uvs.Length > 0 ? extra : [], VertexIds = ids };
     }
 
     public (Vector3 Min, Vector3 Max) Bounds()
